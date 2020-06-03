@@ -39,8 +39,9 @@ class Representative(Politician):
     _sworn_date = None
     _state = None
     _district = None
+    _ID = None
 
-    def __init__(self, fname, lname, party, phone, date, state, district, mname=None):
+    def __init__(self, fname, lname, party, phone, date, state, district, ID, mname=None):
         self._first_name = fname
         if mname is not None:
             try:
@@ -55,8 +56,9 @@ class Representative(Politician):
         self._state = state
         self._district = district
         self._type = "Representative"
+        self._ID = ID
 
-    def vote(bill, favor):
+    def vote(self, bill, favor):
         pass
 
     @property
@@ -78,6 +80,10 @@ class Representative(Politician):
     @property
     def district(self):
         return self._district
+
+    @property
+    def ID(self):
+        return self._ID
 
 class Senator(Politician):
     _address = None

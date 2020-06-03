@@ -16,10 +16,11 @@ def main():
     # root = tree.getroot()
     # members = root.find("members")
     # for c in members:
-    #    politician = Politicians.Representative(c[1].find("firstname").text, c[1].find("lastname").text,
+    #     politician = Politicians.Representative(c[1].find("firstname").text, c[1].find("lastname").text,
     #                             c[1].find("party").text, c[1].find("phone").text, 
     #                             c[1].find("sworn-date").text, c[1].find("state")[0].text,
-    #                             c[1].find("district").text, mname = c[1].find("middlename").text)
+    #                             c[1].find("district").text, c[1].find("bioguideID").text,
+    #                             mname = c[1].find("middlename").text)
     #     pickle.dump(politician, open(path+politician.name, "wb"))
     
     # r = requests.get(senate_link2)
@@ -31,7 +32,7 @@ def main():
     # for path2, dirs, files in os.walk(path):
     #     for name in files:
     #         politician = pickle.load(open(path+name, "rb")) 
-    #         print(politician.district)
+    #         print(politician.ID)
 
     print("--- %s seconds ---" % (time.time()-start_time))
 

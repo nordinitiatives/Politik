@@ -57,7 +57,7 @@ class Representative(Politician):
         self._type = "Representative"
 
     def vote(bill, favor):
-        
+        pass
 
     @property
     def party(self):

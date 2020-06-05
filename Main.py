@@ -43,7 +43,7 @@ def create_representatives():
                                 c[1].find("sworn-date").text, c[1].find("state")[0].text,
                                 c[1].find("district").text, c[1].find("bioguideID").text,
                                 mname = c[1].find("middlename").text)
-        pickle.dump(politician, open('/home/mbando/grind/Politik View/Representatives/'+politician.id, "wb"))
+        pickle.dump(politician, open('Representatives/'+politician.id, "wb"))
 
 def create_senators():
 # Creates senator objects for each senator and saves them to provided path.
@@ -67,7 +67,7 @@ def create_senators():
                                 m.find("party").text, m.find("phone").text, 
                                 m.find("state").text, m.find("address").text, 
                                 id_link[m.find("bioguide_id").text])
-        pickle.dump(politician, open('/home/mbando/grind/Politik View/Senators/'+politician.ID, "wb"))
+        pickle.dump(politician, open('Senators/'+politician.ID, "wb"))
 
 def create_vote(xml, body, values=None):
 # Creates a vote object from xml data and given demograhic values(if any) and saves it to the given path
@@ -102,7 +102,7 @@ def create_vote(xml, body, values=None):
             log[m.find('lis_member_id').text] = m.find('vote_cast').text
 
         vote = Vote(id, desc, date, question, issue, body.lower(), log, values=values)
-        pickle.dump(vote, open('/home/mbando/grind/Politik View/Votes/Senate/'+vote.id, 'wb'))
+        pickle.dump(vote, open('Senate/'+vote.id, 'wb'))
 
 def process_vote(vote):
 # Takes vote objects and applies them to politician objects

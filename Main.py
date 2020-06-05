@@ -103,11 +103,13 @@ def process_vote(vote):
                 try:
                     politician = pickle.load(open('Representatives/'+id, 'rb'))
                     politician.cast(vote, vote.log[id])
+                    pickle.dump(politician, open('Representatives/'+id, 'wb'))
                     print('%s: %s' % (politician.name, politician.get_grade('Race',['Black','Hispanic'])))
+                    politician = None
                 except:
                     continue
             vote.processed = True
-            pickle.dump(vote,  open('Votes/'+vote.id, 'wb'))
+            pickle.dump(vote, open('Votes/'+vote.id, 'wb'))
     else:
         raise SystemError('This vote was already processed')
 

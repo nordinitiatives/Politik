@@ -34,12 +34,12 @@ class Politician:
                                 self._grades[key][demo] -= vote.impact[key][demo]
                             else:
                                 raise ValueError('A vote can only have a "yea" or"nay" value')
-                        return
+                        
         elif say.lower() == 'yea':
             for key in vote.impact:
                 for demo in vote.impact[key]:
                     self._grades[key][demo] += vote.impact[key][demo]
-        elif say: 
+        elif say.lower() == 'nay': 
             for key in vote.impact:
                 for demo in vote.impact[key]:
                     self._grades[key][demo] -= vote.impact[key][demo]

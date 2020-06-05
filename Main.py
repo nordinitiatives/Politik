@@ -8,24 +8,23 @@ from Votes import Vote
 
 def main():
     start_time = time.time()
-    path = "C:/Users/Masiah/Documents/GitHub/Politik/"
+    path = "/home/mbando/grind/Politik View/"
     house_vote = "http://clerk.house.gov/evs/2019/roll701.xml"
     senate_vote = "https://www.senate.gov/legislative/LIS/roll_call_votes/vote1162/vote_116_2_00092.xml"
     sample_values = {'Race':{'Black':5,'Hispanic':3},
                     'Age':{'0-17':6,'18-34':1},
                     'Income':{'High':-5,'Max':-8}}
 
-    # create_senators()
-    # create_representatives()
-    create_vote(house_vote, 'house', sample_values)
-    test_vote = pickle.load(open('Votes/701', 'rb'))
-    # print(len(test_vote.log))
-    process_vote(test_vote)
+    create_senators()
+    create_representatives()
+    # create_vote(senate_vote, 'senate', sample_values)
+    # test_vote = pickle.load(open('/home/mbando/grind/Politik View/Votes/Senate/92', 'rb'))
+    # process_vote(test_vote)
 
-    # for path2, dirs, files in os.walk('Representatives/'):
+    # for path2, dirs, files in os.walk('/home/mbando/grind/Politik View/Senators/'):
     #     for name in files:
-    #         politician = pickle.load(open('Representatives/'+name, 'rb')) 
-    #         print('%s: %s' % (politician.name, politician.get_grade('Race',['Black','Hispanic'])))
+    #         politician = pickle.load(open('/home/mbando/grind/Politik View/Senators/'+name, 'rb')) 
+    #         print('%s: %s' % (politician.name, politician.get_grade('Income',['High','Max'])))
 
     print("--- %s seconds ---" % (time.time()-start_time))
 
@@ -44,26 +43,22 @@ def create_representatives():
                                 c[1].find("sworn-date").text, c[1].find("state")[0].text,
                                 c[1].find("district").text, c[1].find("bioguideID").text,
                                 mname = c[1].find("middlename").text)
-        pickle.dump(politician, open('Representatives/'+politician.id, "wb"))
+        pickle.dump(politician, open('/home/mbando/grind/Politik View/Representatives/'+politician.id, "wb"))
 
 def create_senators():
-# Creates senator objects for each senator and saves them to provided path. This fucntion gets the xml
-# file from the govt website using requests because the request needs a browser header in order to
-# retrieve the xml data
+# Creates senator objects for each senator and saves them to provided path.
     senate_link = "https://www.senate.gov/general/contact_information/senators_cfm.xml"
-    header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
-    r = requests.get(senate_link, headers = header)  
-
-    # The following section of code write the xml to a file and then deletes the file after the xml is
-    # pared from the file
-    with open('Temp.xml', 'w') as f:
-        f.write(r.text)
-    with open('Temp.xml') as f:
-        tree = etree.parse(f)
-    os.remove('Temp.xml')
-
+    senate_link2 = "https://www.senate.gov/legislative/LIS_MEMBER/cvc_member_data.xml"
+    tree = fake_browser_visit(senate_link)
+    tree2 = fake_browser_visit(senate_link2)
     root = tree.getroot()
+    root2 = tree2.getroot()
     members = root.findall('member')
+    senators = root2.findall('senator')
+    
+    id_link = {}
+    for s in senators:
+        id_link[s.find('bioguideId').text] = s.get('lis_member_id')
 
     for m in members:
         if m.find("bioguide_id").text == None:
@@ -71,8 +66,8 @@ def create_senators():
         politician = Politicians.Senator(m.find("first_name").text, m.find("last_name").text,
                                 m.find("party").text, m.find("phone").text, 
                                 m.find("state").text, m.find("address").text, 
-                                m.find("bioguide_id").text)
-        pickle.dump(politician, open('Senators/'+politician.ID, "wb"))
+                                id_link[m.find("bioguide_id").text])
+        pickle.dump(politician, open('/home/mbando/grind/Politik View/Senators/'+politician.ID, "wb"))
 
 def create_vote(xml, body, values=None):
 # Creates a vote object from xml data and given demograhic values(if any) and saves it to the given path
@@ -91,27 +86,67 @@ def create_vote(xml, body, values=None):
             log[c[0].get('name-id')] = c[1].text
 
         vote = Vote(id, desc, date, question, issue, body.lower(), log, values=values)
-        pickle.dump(vote, open('Votes/'+vote.id, 'wb'))
+        pickle.dump(vote, open('/home/mbando/grind/Politik View/Votes/House/'+vote.id, 'wb'))
     elif body.lower() == 'senate':
-        pass
+        tree = fake_browser_visit(xml)
+        root = tree.getroot()
+
+        id = root.find('vote_number').text
+        issue = root.find('document').find('document_name').text
+        question = root.find('question').text
+        date = root.find('vote_date').text
+        desc = root.find('vote_document_text').text
+
+        log = {}
+        for m in root.find('members'):
+            log[m.find('lis_member_id').text] = m.find('vote_cast').text
+
+        vote = Vote(id, desc, date, question, issue, body.lower(), log, values=values)
+        pickle.dump(vote, open('/home/mbando/grind/Politik View/Votes/Senate/'+vote.id, 'wb'))
 
 def process_vote(vote):
 # Takes vote objects and applies them to politician objects
     if vote.processed == False:
-        if vote.body == 'house':
+        if vote.body.lower() == 'house':
             for id in vote.log:
                 try:
-                    politician = pickle.load(open('Representatives/'+id, 'rb'))
+                    politician = pickle.load(open('/home/mbando/grind/Politik View/Representatives/'+id, 'rb'))
                     politician.cast(vote, vote.log[id])
-                    pickle.dump(politician, open('Representatives/'+id, 'wb'))
+                    pickle.dump(politician, open('/home/mbando/grind/Politik View/Representatives/'+id, 'wb'))
                     print('%s: %s' % (politician.name, politician.get_grade('Race',['Black','Hispanic'])))
-                    politician = None
                 except:
                     continue
             vote.processed = True
-            pickle.dump(vote, open('Votes/'+vote.id, 'wb'))
+            pickle.dump(vote, open('/home/mbando/grind/Politik View/Votes/House/'+vote.id, 'wb'))
+        elif vote.body.lower() == 'senate':
+            for id in vote.log:
+                try:
+                    politician = pickle.load(open('/home/mbando/grind/Politik View/Senators/'+id, 'rb'))
+                    politician.cast(vote, vote.log[id])
+                    pickle.dump(politician, open('/home/mbando/grind/Politik View/Senators/'+id, 'wb'))
+                    print('%s: %s' % (politician.name, politician.get_grade('Race',['Black','Hispanic'])))
+                except:
+                    continue
+            vote.processed = True
+            pickle.dump(vote, open('/home/mbando/grind/Politik View/Votes/Senate/'+vote.id, 'wb'))
     else:
         raise SystemError('This vote was already processed')
+
+def fake_browser_visit(xml_link):
+# The senate website apparently does not allow for programs to retrieve xml data so this function request the xml data with a browser header and returns
+# an xml tree object
+    header = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36'}
+    r = requests.get(xml_link, headers = header)  
+
+    # The following section of code write the xml to a file and then deletes the file after the xml is
+    # pared from the file
+    with open('Temp.xml', 'w') as f:
+        f.write(r.text)
+    with open('Temp.xml') as f:
+        tree = etree.parse(f)
+    os.remove('Temp.xml')
+    
+    return tree
 
 if __name__ == "__main__":
 	main()

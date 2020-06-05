@@ -1,3 +1,5 @@
+import copy
+
 class Politician:
 # Base politician object. Should only be used if the politician being created has no other classification
     _first_name = None
@@ -7,12 +9,7 @@ class Politician:
     _ID = None
     _phone = None
     _votes = {}
-    _grades = {'Race':{'Black':0,'White':0,'Asain':0,'Brown':0,'Hispanic':0,'Native':0,'Other':0},
-                'Gender':{'Male':0,'Female':0,'Transgender':0,'Other':0},
-                'Age':{'0-17':0,'18-34':0,'35-50':0,'51-70':0,'71+':0},
-                'MaritalStatus':{'Single':0,'Married':0,'Divorced/Widowed':0,'Remarried':0},
-                'Education':{'SomeHS':0,'HSOnly':0,'SomeCollege':0,'Associates':0,'Bachelors':0,'Masters':0},
-                'Income':{'Poverty':0,'Low':0,'Middle':0,'UpperMiddle':0,'High':0,'Max':0}}
+    _grades = None
 
     def __init__(self, fname, lname, phone, ID, mname=None):
         self._first_name = fname
@@ -20,6 +17,12 @@ class Politician:
         self._middle_name = mname
         self._phone = phone
         self._ID = ID
+        self._grades = {'Race':{'Black':0,'White':0,'Asain':0,'Brown':0,'Hispanic':0,'Native':0,'Other':0},
+                'Gender':{'Male':0,'Female':0,'Transgender':0,'Other':0},
+                'Age':{'0-17':0,'18-34':0,'35-50':0,'51-70':0,'71+':0},
+                'MaritalStatus':{'Single':0,'Married':0,'Divorced/Widowed':0,'Remarried':0},
+                'Education':{'SomeHS':0,'HSOnly':0,'SomeCollege':0,'Associates':0,'Bachelors':0,'Masters':0},
+                'Income':{'Poverty':0,'Low':0,'Middle':0,'UpperMiddle':0,'High':0,'Max':0}}
 
     def cast(self, vote, say=None):
     # Updates the politicans grades resulting from voted on a bill
@@ -33,7 +36,7 @@ class Politician:
                             elif vote.log[v].lower() == 'nay': 
                                 self._grades[key][demo] -= vote.impact[key][demo]
                             else:
-                                raise ValueError('A vote can only have a "yea" or"nay" value')
+                                raise ValueError('A vote can only have a "yea" or "nay" value')
                         
         elif say.lower() == 'yea':
             for key in vote.impact:
@@ -44,7 +47,7 @@ class Politician:
                 for demo in vote.impact[key]:
                     self._grades[key][demo] -= vote.impact[key][demo]
         else:
-            raise ValueError('A vote can only have a "yea" or"nay" value')
+            raise ValueError('A vote can only have a "yea" or "nay" value')
 
     def get_vote(self, vote_id):
     # Returns what the policician voted on a particular bill. If the politician hasn't voted on that
@@ -118,21 +121,18 @@ class Representative(Politician):
     _district = None
 
     def __init__(self, fname, lname, party, phone, date, state, district, ID, mname=None):
-        self._first_name = fname
+        super().__init__(fname, lname, phone, ID)
         if mname is not None:
             try:
                 x = mname.index('"')
                 self._middle_name = mname[:x]
             except:
                 self._middle_name = mname
-        self._last_name = lname
         self._party = party
-        self._phone = phone
         self._sworn_date = date
         self._state = state
         self._district = district
         self._type = "Representative"
-        self._ID = ID
 
     @property
     def party(self):

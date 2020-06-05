@@ -11,16 +11,21 @@ def main():
     path = "C:/Users/Masiah/Documents/GitHub/Politik/"
     house_vote = "http://clerk.house.gov/evs/2019/roll701.xml"
     senate_vote = "https://www.senate.gov/legislative/LIS/roll_call_votes/vote1162/vote_116_2_00092.xml"
-    sample_values = {}
+    sample_values = {'Race':{'Black':5,'Hispanic':3},
+                    'Age':{'0-17':6,'18-34':1},
+                    'Income':{'High':-5,'Max':-8}}
 
-    create_senators()
-    create_representatives()
-    create_vote(house_vote, 'hosue')
+    # create_senators()
+    # create_representatives()
+    create_vote(house_vote, 'house', sample_values)
+    test_vote = pickle.load(open('Votes/701', 'rb'))
+    # print(len(test_vote.log))
+    process_vote(test_vote)
 
-    # for path2, dirs, files in os.walk(path+'Senators/'):
+    # for path2, dirs, files in os.walk('Representatives/'):
     #     for name in files:
-    #         politician = pickle.load(open(path+'Senators/'+name, 'rb')) 
-    #         print(politician.name)
+    #         politician = pickle.load(open('Representatives/'+name, 'rb')) 
+    #         print('%s: %s' % (politician.name, politician.get_grade('Race',['Black','Hispanic'])))
 
     print("--- %s seconds ---" % (time.time()-start_time))
 
@@ -71,7 +76,7 @@ def create_senators():
 
 def create_vote(xml, body, values=None):
 # Creates a vote object from xml data and given demograhic values(if any) and saves it to the given path
-    if body.lower() == 'hosue':
+    if body.lower() == 'house':
         tree = etree.parse(xml)
         root = tree.getroot()
 
@@ -92,14 +97,19 @@ def create_vote(xml, body, values=None):
 
 def process_vote(vote):
 # Takes vote objects and applies them to politician objects
-    if vote.body == 'house':
-        for id in vote.log:
-            for path2, dirs, files in os.walk('Representatives'):
-                for name in files:
-                    if id == name:
-                        politician = pickle.load(open('Representatives/'+name, 'rb'))
+    if vote.processed == False:
+        if vote.body == 'house':
+            for id in vote.log:
+                try:
+                    politician = pickle.load(open('Representatives/'+id, 'rb'))
                     politician.cast(vote, vote.log[id])
-
+                    print('%s: %s' % (politician.name, politician.get_grade('Race',['Black','Hispanic'])))
+                except:
+                    continue
+            vote.processed = True
+            pickle.dump(vote,  open('Votes/'+vote.id, 'wb'))
+    else:
+        raise SystemError('This vote was already processed')
 
 if __name__ == "__main__":
 	main()
